@@ -1,0 +1,6 @@
+region,location,em_zone,em_tier,annual_gco2e_kwh,basis,source,source_url,year,accessed,note
+us-east-1,N. Virginia,US-MIDA-PJM,A,343,operational-avg,Google Cloud region carbon table (Electricity Maps data),https://cloud.google.com/sustainability/region-carbon,2025,2026-10-XX,"GCP us-east4 proxy; cross-check with EM lifecycle"
+us-west-2,Oregon,US-NW-PACW,TODO,98,operational-avg,Google Cloud region carbon table,https://cloud.google.com/sustainability/region-carbon,2025,2026-10-XX,"GCP us-west1 proxy; alt zone US-NW-BPAT"
+eu-west-1,Dublin,IE,A,TODO,lifecycle,Electricity Maps / Ember,https://app.electricitymaps.com,2025,2026-10-XX,no GCP region in Ireland
+eu-north-1,Stockholm,SE-SE3,A,19,operational-avg,Google Cloud region carbon table,https://cloud.google.com/sustainability/region-carbon,2025,2026-10-XX,GCP europe-north2 proxy
+ap-south-1,Mumbai,IN-WE,TODO,598,operational-avg,Google Cloud region carbon table,https://cloud.google.com/sustainability/region-carbon,2025,2026-10-XX,"GCP asia-south1 proxy; likely estimated hourly data"
