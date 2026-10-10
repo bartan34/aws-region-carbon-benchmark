@@ -42,11 +42,11 @@ cat > "$OUT/meta.json" <<JSON
   "region": "$REGION", "az": "$AZ", "instance_id": "$IID", "instance_type": "$ITYPE",
   "ami": "$AMI", "kernel": "$(uname -r)", "os": "$(. /etc/os-release; echo $PRETTY_NAME)",
   "sysbench": "$(sysbench --version)",
-  "cpu_model": "$(lscpu | grep 'Model name' | sed 's/.*: *//')",
+  "cpu_model": "$(lscpu | grep -m1 '^Model name' | sed 's/.*: *//')",
   "vcpus": $(nproc),
   "runs": $RUNS, "run_seconds": $RUN_SECONDS, "idle_seconds": $IDLE_SECONDS,
   "threads": $THREADS, "cpu_max_prime": $MAX_PRIME,
-  "boot_utc": "$(date -u +%FT%TZ)"
+  "meta_written_utc": "$(date -u +%FT%TZ)"
 }
 JSON
 

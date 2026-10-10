@@ -118,6 +118,12 @@ def mean_cpu(cloudwatch_csv: Path, start: datetime, end: datetime) -> float | No
         ts = parse_ts(r["timestamp"])
         if start <= ts < end:
             vals.append(float(r["avg"]))
+    # CloudWatch's 1-minute sampling window is aligned to instance launch, not to
+    # clock minutes, so the first and last minute of a window mix idle and load
+    # (observed in the pilot: 14.6% / 67.6% / 99.95%). Drop boundary minutes when
+    # there are enough points to do so.
+    if len(vals) >= 4:
+        vals = vals[1:-1]
     return statistics.fmean(vals) if vals else None
 
 
