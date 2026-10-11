@@ -6,6 +6,7 @@
 Inputs (relative to repo root):
   data/raw/<region>/<instance-id>/sysbench_runN.txt, cloudwatch.csv, timeline.txt, meta.json
   data/coefficients/power.csv, pue.csv, grid-intensity.csv, regions.csv, boavizta-<type>-<ISO3>.json
+  data/coefficients/em-hourly.csv (optional fallback when em-history.json is absent)
 Output:
   data/processed/sci-results.csv   (one row per run, three accounting views)
   data/processed/sci-summary.csv   (one row per region: mean, SD, CV, shares)
@@ -18,7 +19,7 @@ import csv
 import json
 import re
 import statistics
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -127,18 +128,40 @@ def mean_cpu(cloudwatch_csv: Path, start: datetime, end: datetime) -> float | No
     return statistics.fmean(vals) if vals else None
 
 
-def hourly_intensity(em_json: Path | None, start: datetime, end: datetime) -> float | None:
-    """Mean of Electricity Maps hourly values overlapping the run window, if the file exists."""
-    if em_json is None or not em_json.exists():
-        return None
-    data = json.loads(em_json.read_text())
-    vals = []
-    for h in data.get("history", []):
-        ts = parse_ts(h["datetime"])
-        if start.replace(minute=0, second=0) <= ts <= end:
-            if h.get("carbonIntensity") is not None:
-                vals.append(float(h["carbonIntensity"]))
-    return statistics.fmean(vals) if vals else None
+EM_HOURLY_WINDOW = timedelta(minutes=90)
+
+
+def load_em_hourly() -> list[dict]:
+    """Manually captured Electricity Maps values (one row per region per session)."""
+    path = COEF / "em-hourly.csv"
+    if not path.exists():
+        return []
+    rows = read_csv(path)
+    for r in rows:
+        r["utc"] = parse_ts(r["utc"])
+    return rows
+
+
+def hourly_intensity(em_json: Path | None, em_hourly: list[dict], region: str,
+                     start: datetime, end: datetime) -> tuple[float | None, str]:
+    """Grid intensity for the run window and where it came from.
+
+    Prefers the per-instance em-history.json (mean of hourly values overlapping the
+    run). If that file is absent, falls back to em-hourly.csv rows for the region
+    captured within +/-90 min of the run start. Source is "" when no value is found.
+    """
+    if em_json is not None and em_json.exists():
+        data = json.loads(em_json.read_text())
+        vals = []
+        for h in data.get("history", []):
+            ts = parse_ts(h["datetime"])
+            if start.replace(minute=0, second=0) <= ts <= end:
+                if h.get("carbonIntensity") is not None:
+                    vals.append(float(h["carbonIntensity"]))
+        return (statistics.fmean(vals), "em-history.json") if vals else (None, "")
+    vals = [float(r["gco2e_kwh"]) for r in em_hourly
+            if r["region"] == region and abs(r["utc"] - start) <= EM_HOURLY_WINDOW]
+    return (statistics.fmean(vals), "em-hourly.csv") if vals else (None, "")
 
 
 # --- main -------------------------------------------------------------------
@@ -146,6 +169,7 @@ def hourly_intensity(em_json: Path | None, start: datetime, end: datetime) -> fl
 def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     regions = load_region_table()
+    em_hourly = load_em_hourly()
     rows = []
 
     for region_dir in sorted(p for p in RAW.iterdir() if p.is_dir()):
@@ -172,7 +196,7 @@ def main() -> None:
                 hours = sb["total_time_s"] / 3600
                 watts = interpolate(curve, cpu) if cpu is not None else None
                 e_kwh = watts * hours * reg["pue"] / 1000 if watts else None
-                i_hourly = hourly_intensity(em, start, end)
+                i_hourly, i_hourly_src = hourly_intensity(em, em_hourly, region, start, end)
                 m_g = m_kg * 1000 if m_kg is not None else None
                 r_units = sb["total_events"] / 1e6
 
@@ -191,7 +215,7 @@ def main() -> None:
                     "events_per_sec": sb["events_per_sec"], "total_events": sb["total_events"],
                     "idle_cpu_pct": idle_cpu, "run_cpu_pct": cpu, "watts_est": watts,
                     "pue": reg["pue"], "e_kwh": e_kwh,
-                    "i_annual": reg["i_annual"], "i_hourly": i_hourly,
+                    "i_annual": reg["i_annual"], "i_hourly": i_hourly, "i_hourly_source": i_hourly_src,
                     "op_g_lbm_annual": op_annual, "op_g_lbm_hourly": op_hourly,
                     "embodied_g": m_g,
                     "sci_lbm_annual_g_per_1e6ev": sci(op_annual, m_g),

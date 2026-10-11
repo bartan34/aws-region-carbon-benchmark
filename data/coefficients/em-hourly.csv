@@ -1,0 +1,6 @@
+region,session,utc,em_zone,gco2e_kwh,resolution,quality,source,screenshot
+us-east-1,A,2026-10-11T14:10Z,US-MIDA-PJM,416,5min,preliminary,Electricity Maps app,em-US-MIDA-PJM-2026-10-11T1410Z.png
+us-west-2,A,2026-10-11T14:10Z,US-NW-PACW,374,5min,preliminary,Electricity Maps app,em-US-NW-PACW-2026-10-11T1410Z.png
+eu-west-1,A,2026-10-11T14:10Z,IE,144,5min,synthetic,Electricity Maps app,em-IE-2026-10-11T1410Z.png
+eu-north-1,A,2026-10-11T14:10Z,SE-SE3,23,5min,preliminary,Electricity Maps app,em-SE-SE3-2026-10-11T1410Z.png
+ap-south-1,A,2026-10-11T14:10Z,IN-WE,674,5min,preliminary,Electricity Maps app,em-IN-WE-2026-10-11T1410Z.png

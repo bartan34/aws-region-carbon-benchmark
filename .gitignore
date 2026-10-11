@@ -18,6 +18,7 @@ scripts/ud-*.sh
 *.jpg
 *.jpeg
 !docs/architecture.png
+appendix/
 
 # Python
 __pycache__/
