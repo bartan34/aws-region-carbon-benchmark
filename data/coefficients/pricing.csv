@@ -1,0 +1,6 @@
+region,instance_type,usd_per_hour,pricing_model,effective_date,publication_date,source,accessed
+us-east-1,m5.large,0.0960000000,on-demand,2026-10-01,2026-10-23,AWS Price List Query API,2026-10-24
+us-west-2,m5.large,0.0960000000,on-demand,2026-10-01,2026-10-23,AWS Price List Query API,2026-10-24
+eu-west-1,m5.large,0.1070000000,on-demand,2026-10-01,2026-10-23,AWS Price List Query API,2026-10-24
+eu-north-1,m5.large,0.1020000000,on-demand,2026-10-01,2026-10-23,AWS Price List Query API,2026-10-24
+ap-south-1,m5.large,0.1010000000,on-demand,2026-10-01,2026-10-23,AWS Price List Query API,2026-10-24

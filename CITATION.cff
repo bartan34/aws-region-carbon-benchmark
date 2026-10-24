@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this software or data, please cite it as below."
+title: "aws-region-carbon-benchmark: carbon and cost per unit of work across AWS regions"
+type: software
+authors:
+  - family-names: "Tanrıverdi"
+    given-names: "Barış"
+repository-code: "https://github.com/bartan34/aws-region-carbon-benchmark"
+license: MIT
+keywords:
+  - aws
+  - ec2
+  - carbon-footprint
+  - software-carbon-intensity
+  - green-software
+  - cloud-cost

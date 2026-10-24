@@ -1,0 +1,2 @@
+# analysis/sci.py uses only the standard library; figures need matplotlib.
+matplotlib>=3.8

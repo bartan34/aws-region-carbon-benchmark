@@ -7,6 +7,7 @@ Inputs (relative to repo root):
   data/raw/<region>/<instance-id>/sysbench_runN.txt, cloudwatch.csv, timeline.txt, meta.json
   data/coefficients/power.csv, pue.csv, grid-intensity.csv, regions.csv, boavizta-<type>-<ISO3>.json
   data/coefficients/em-hourly.csv (optional fallback when em-history.json is absent)
+  data/coefficients/pricing.csv   (optional, on-demand USD/h from scripts/pricing.sh)
 Output:
   data/processed/sci-results.csv   (one row per run, three accounting views)
   data/processed/sci-summary.csv   (one row per region: mean, SD, CV, shares)
@@ -86,6 +87,14 @@ def load_boavizta_embedded(instance_type: str, iso3: str) -> float | None:
         return None
     data = json.loads(path.read_text())
     return float(data["impacts"]["gwp"]["embedded"]["value"])
+
+
+def load_pricing() -> dict[tuple[str, str], float]:
+    """On-demand USD per hour keyed by (region, instance_type); empty if not fetched."""
+    path = COEF / "pricing.csv"
+    if not path.exists():
+        return {}
+    return {(r["region"], r["instance_type"]): float(r["usd_per_hour"]) for r in read_csv(path)}
 
 
 # --- raw run parsing --------------------------------------------------------
@@ -170,6 +179,7 @@ def main() -> None:
     OUT.mkdir(parents=True, exist_ok=True)
     regions = load_region_table()
     em_hourly = load_em_hourly()
+    pricing = load_pricing()
     rows = []
 
     for region_dir in sorted(p for p in RAW.iterdir() if p.is_dir()):
@@ -186,6 +196,7 @@ def main() -> None:
             em = inst_dir / "em-history.json"
             reg = regions[region]
             m_kg = load_boavizta_embedded(itype, reg["iso3"])
+            usd_h = pricing.get((region, itype))
 
             idle_cpu = mean_cpu(cw, timeline["idle_start_utc"], timeline["idle_end_utc"])
 
@@ -199,6 +210,7 @@ def main() -> None:
                 i_hourly, i_hourly_src = hourly_intensity(em, em_hourly, region, start, end)
                 m_g = m_kg * 1000 if m_kg is not None else None
                 r_units = sb["total_events"] / 1e6
+                cost = usd_h * hours if usd_h is not None else None  # compute only, per-second billing
 
                 op_annual = e_kwh * reg["i_annual"] if e_kwh else None
                 op_hourly = e_kwh * i_hourly if (e_kwh and i_hourly) else None
@@ -221,6 +233,8 @@ def main() -> None:
                     "sci_lbm_annual_g_per_1e6ev": sci(op_annual, m_g),
                     "sci_lbm_hourly_g_per_1e6ev": sci(op_hourly, m_g),
                     "sci_mbm_g_per_1e6ev": (m_g / r_units) if m_g is not None else None,  # Scope 2 = 0 assumption
+                    "usd_per_hour": usd_h, "cost_usd": cost,
+                    "cost_usd_per_1e6ev": (cost / r_units) if cost is not None else None,
                 })
 
     if not rows:
@@ -238,6 +252,11 @@ def main() -> None:
         sci_vals = [r["sci_lbm_annual_g_per_1e6ev"] for r in rr if r["sci_lbm_annual_g_per_1e6ev"] is not None]
         op = [r["op_g_lbm_annual"] for r in rr if r["op_g_lbm_annual"] is not None]
         emb = rr[0]["embodied_g"]
+
+        def mean_of(key):
+            vals = [r[key] for r in rr if r[key] is not None]
+            return statistics.fmean(vals) if vals else None
+
         summary.append({
             "region": region, "n_runs": len(rr),
             "cpu_models": ";".join(sorted({r["cpu_model"] for r in rr})),
@@ -249,6 +268,10 @@ def main() -> None:
             "embodied_share_pct": (emb / (statistics.fmean(op) + emb) * 100) if (op and emb is not None) else None,
             "sci_lbm_annual_mean": statistics.fmean(sci_vals) if sci_vals else None,
             "sci_lbm_annual_sd": statistics.stdev(sci_vals) if len(sci_vals) > 1 else 0.0,
+            "sci_lbm_hourly_mean": mean_of("sci_lbm_hourly_g_per_1e6ev"),
+            "sci_mbm_mean": mean_of("sci_mbm_g_per_1e6ev"),
+            "usd_per_hour": rr[0]["usd_per_hour"],
+            "cost_usd_per_1e6ev_mean": mean_of("cost_usd_per_1e6ev"),
         })
     with (OUT / "sci-summary.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(summary[0].keys()))

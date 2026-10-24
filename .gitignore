@@ -18,6 +18,10 @@ scripts/ud-*.sh
 *.jpg
 *.jpeg
 !docs/architecture.png
+!docs/figures/fig2-stacked-op-embodied.png
+!docs/figures/fig3-tornado.png
+!docs/figures/fig4-accounting-views.png
+!docs/figures/fig5-cost-vs-carbon.png
 appendix/
 
 # Python
