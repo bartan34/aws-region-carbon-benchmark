@@ -1,5 +1,7 @@
 # aws-region-carbon-benchmark
 
+[![lint](https://github.com/bartan34/aws-region-carbon-benchmark/actions/workflows/lint.yml/badge.svg)](https://github.com/bartan34/aws-region-carbon-benchmark/actions/workflows/lint.yml)
+
 Run the same CPU-bound benchmark in several AWS regions and estimate the
 lifecycle carbon footprint and the compute cost per unit of work, using the
 Software Carbon Intensity (SCI) formula from ISO/IEC 21031:2024.
@@ -93,8 +95,16 @@ down. CloudWatch records 1-minute CPU utilisation in the meantime.
 turns them into results and figures. The editable diagram source is
 `docs/architecture.drawio`.
 
-Guardrails built into the scripts:
+The same run is available as Terraform (`infra/`) and as a GitHub Actions
+workflow that applies, waits, collects the data and destroys, one job per
+region. See [docs/terraform.md](docs/terraform.md).
 
+Guardrails:
+
+- **No stored AWS keys in CI.** GitHub Actions assumes an IAM role through
+  OIDC; only workflows on `main` of this repository can assume it, and the
+  role can launch only allowed instance types in allowed regions, and
+  touch only resources tagged `Project=carbon-bench`.
 - **No access from outside.** No key pair, no SSH; the instance role has
   `s3:PutObject` on `carbon-bench-*` buckets only, plus SSM for emergency
   access (`docs/iam-policy.json`, `docs/iam-setup.md`).
@@ -102,13 +112,17 @@ Guardrails built into the scripts:
 - **Cannot be forgotten.** Instances launch with
   `--instance-initiated-shutdown-behavior terminate` and shut themselves
   down after uploading. `cleanup.sh` lists instances tagged
-  `Project=carbon-bench`, unattached volumes, Elastic IPs and project
-  buckets; `--delete` removes the buckets and volumes.
+  `Project=carbon-bench`, unattached volumes, Elastic IPs, project
+  security groups and buckets; `--delete` removes all but the instances.
+  In the Terraform path `terraform destroy` runs even when a step fails.
 - **No cross-region traffic.** Outputs go to a bucket in the same region.
 - **Budget alarm first.** The quick start asks for an AWS Budget before
   anything is launched.
 
 ## Quick start
+
+Two equivalent paths: the shell scripts below, or Terraform and GitHub
+Actions ([docs/terraform.md](docs/terraform.md)).
 
 Prerequisites: AWS CLI v2 configured, `jq`, Python 3.10+, an IAM instance
 profile named `carbon-bench-ec2-role` (see `docs/iam-setup.md`), and an
@@ -155,7 +169,10 @@ needs matplotlib.
 ## Repository layout
 
 ```
-scripts/            launch, user-data (benchmark), metric pull, Boavizta, pricing, cleanup
+scripts/            launch, user-data (benchmark), wait, metric pull, Boavizta, pricing, cleanup
+infra/bootstrap/    Terraform: state bucket, instance role, GitHub OIDC role, budget
+infra/benchmark/    Terraform: one region's bucket, security group and instance
+.github/workflows/  benchmark (run from the Actions tab), lint and reproduction checks
 data/coefficients/  every external number with source, year, access date
 data/raw/<region>/  per-instance outputs: sysbench, lscpu, meta.json, cloudwatch.csv
 data/raw/_pilot/    2-minute pilot run, excluded from the analysis

@@ -242,7 +242,8 @@ def main() -> None:
 
     with (OUT / "sci-results.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
-        w.writeheader(); w.writerows(rows)
+        w.writeheader()
+        w.writerows(rows)
 
     # per-region summary
     summary = []
@@ -275,12 +276,14 @@ def main() -> None:
         })
     with (OUT / "sci-summary.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(summary[0].keys()))
-        w.writeheader(); w.writerows(summary)
+        w.writeheader()
+        w.writerows(summary)
 
     print(f"wrote {len(rows)} runs -> {OUT / 'sci-results.csv'}")
     print(f"wrote {len(summary)} regions -> {OUT / 'sci-summary.csv'}")
     for s in summary:
-        print(f"  {s['region']:12s} SCI={s['sci_lbm_annual_mean']!s:>10} g/1e6ev  embodied share={s['embodied_share_pct']!s}%")
+        print(f"  {s['region']:12s} SCI={s['sci_lbm_annual_mean']!s:>10} g/1e6ev  "
+              f"embodied share={s['embodied_share_pct']!s}%")
 
 
 if __name__ == "__main__":

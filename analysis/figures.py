@@ -64,8 +64,9 @@ def region_order(rows: list[dict]) -> list[str]:
     return sorted(by, key=lambda k: statistics.fmean(by[k]))
 
 
-def mean_by_region(rows: list[dict], key: str, region: str) -> float:
-    return statistics.fmean(r[key] for r in rows if r["region"] == region)
+def mean_by_region(rows: list[dict], key: str, region: str) -> float | None:
+    vals = [r[key] for r in rows if r["region"] == region and r[key] is not None]
+    return statistics.fmean(vals) if vals else None
 
 
 # --- sensitivity ------------------------------------------------------------
@@ -131,7 +132,8 @@ def fig_stacked(rows: list[dict], regions: list[str]) -> None:
 
 
 def fig_tornado(sens: list[dict], regions: list[str]) -> None:
-    fig, axes = plt.subplots(1, len(regions), figsize=(3.1 * len(regions), 3.2))
+    fig, axes = plt.subplots(1, len(regions), figsize=(3.1 * max(len(regions), 2), 3.2), squeeze=False)
+    axes = axes[0]
     for ax, region in zip(axes, regions):
         rs = sorted((s for s in sens if s["region"] == region),
                     key=lambda s: s["delta_high"] - s["delta_low"])
@@ -157,10 +159,12 @@ def fig_accounting(rows: list[dict], regions: list[str]) -> None:
              ("sci_lbm_hourly_g_per_1e6ev", "Location-based, hourly at run time", ORANGE),
              ("sci_mbm_g_per_1e6ev", "Market-based (renewable matching, Scope 2 = 0)", AQUA)]
     fig, ax = plt.subplots(figsize=(8, 4.2))
-    w = 0.24
+    # hourly values exist only when grid readings were taken during the runs
+    views = [v for v in views if any(mean_by_region(rows, v[0], g) is not None for g in regions)]
+    w = 0.72 / len(views)
     for j, (key, label, color) in enumerate(views):
-        vals = [mean_by_region(rows, key, g) for g in regions]
-        xs = [i + (j - 1) * w for i in range(len(regions))]
+        vals = [mean_by_region(rows, key, g) or 0.0 for g in regions]
+        xs = [i + (j - (len(views) - 1) / 2) * w for i in range(len(regions))]
         ax.bar(xs, vals, width=w, color=color, edgecolor=SURFACE, linewidth=2, label=label)
     ax.set_xticks(range(len(regions)), regions)
     ax.grid(axis="x", visible=False)
@@ -184,10 +188,12 @@ def fig_cost(rows: list[dict], regions: list[str]) -> None:
     ax.set_ylim(0, max(sci) * 1.15)
     ax.set_xlabel("On-demand compute cost, US cents per 10⁶ events")
     ax.set_ylabel("SCI, gCO₂e per 10⁶ events")
-    spread_c = max(cents) / min(cents)
-    spread_s = max(sci) / min(sci)
-    ax.set_title(f"Cost varies {(spread_c - 1) * 100:.0f}% across regions, carbon varies {spread_s:.0f}×",
-                 loc="left", fontsize=12)
+    if len(regions) > 1:
+        title = (f"Cost varies {(max(cents) / min(cents) - 1) * 100:.0f}% across regions, "
+                 f"carbon varies {max(sci) / min(sci):.0f}×")
+    else:
+        title = "Cost and carbon per unit of work"
+    ax.set_title(title, loc="left", fontsize=12)
     fig.tight_layout()
     fig.savefig(FIG / "fig5-cost-vs-carbon.png", dpi=200)
     plt.close(fig)
@@ -200,7 +206,8 @@ def main() -> None:
     sens = sensitivity(rows)
     with (OUT / "sensitivity.csv").open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(sens[0].keys()))
-        w.writeheader(); w.writerows(sens)
+        w.writeheader()
+        w.writerows(sens)
     fig_stacked(rows, regions)
     fig_tornado(sens, regions)
     fig_accounting(rows, regions)

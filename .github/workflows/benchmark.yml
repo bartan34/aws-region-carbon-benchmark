@@ -1,0 +1,145 @@
+name: benchmark
+
+# Run the benchmark in one or more regions from the Actions tab. AWS access is
+# through OIDC (no stored keys); see docs/terraform.md for the one-time setup.
+# Each region: terraform apply -> wait -> pull outputs and metrics -> destroy.
+# Then one job computes SCI and figures for this run only and uploads them.
+
+on:
+  workflow_dispatch:
+    inputs:
+      regions:
+        description: Space-separated regions (must be in data/coefficients/regions.csv)
+        type: string
+        default: eu-north-1
+      runs:
+        description: Benchmark runs per instance
+        type: number
+        default: 5
+      run_seconds:
+        description: Seconds per run
+        type: number
+        default: 600
+      idle_seconds:
+        description: Idle baseline seconds
+        type: number
+        default: 600
+
+permissions:
+  contents: read
+
+concurrency:
+  group: benchmark
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      regions: ${{ steps.matrix.outputs.regions }}
+    steps:
+      - id: matrix
+        env:
+          REGIONS: ${{ inputs.regions }}
+        run: echo "regions=$(jq -cn --arg r "$REGIONS" '$r | split(" ") | map(select(length > 0))')" >> "$GITHUB_OUTPUT"
+
+  run:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 240
+    permissions:
+      id-token: write
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        region: ${{ fromJSON(needs.plan.outputs.regions) }}
+    env:
+      TF_IN_AUTOMATION: "1"
+      TF_VARS: >-
+        -var region=${{ matrix.region }}
+        -var runs=${{ inputs.runs }}
+        -var run_seconds=${{ inputs.run_seconds }}
+        -var idle_seconds=${{ inputs.idle_seconds }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          role-duration-seconds: 14400
+          aws-region: ${{ matrix.region }}
+
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
+
+      - name: terraform init
+        run: >
+          terraform -chdir=infra/benchmark init -input=false
+          -backend-config="bucket=${{ vars.TF_STATE_BUCKET }}"
+          -backend-config="region=${{ vars.TF_STATE_REGION }}"
+          -backend-config="key=benchmark/${{ matrix.region }}/${{ github.run_id }}.tfstate"
+
+      - name: terraform apply
+        id: apply
+        run: |
+          # shellcheck disable=SC2086
+          terraform -chdir=infra/benchmark apply -input=false -auto-approve $TF_VARS
+          echo "iid=$(terraform -chdir=infra/benchmark output -raw instance_id)" >> "$GITHUB_OUTPUT"
+          echo "bucket=$(terraform -chdir=infra/benchmark output -raw bucket)" >> "$GITHUB_OUTPUT"
+
+      - name: wait for the benchmark to finish
+        run: ./scripts/wait-done.sh ${{ matrix.region }} ${{ steps.apply.outputs.iid }} ${{ steps.apply.outputs.bucket }} 200
+
+      - name: pull outputs and CloudWatch metrics
+        run: |
+          # analyse only this run, not the committed dataset
+          find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+          ./scripts/pull-cloudwatch.sh ${{ matrix.region }} ${{ steps.apply.outputs.iid }} ${{ steps.apply.outputs.bucket }}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.region }}
+          path: data/raw/${{ matrix.region }}
+
+      - name: terraform destroy
+        if: always() && steps.apply.outcome != 'skipped'
+        run: |
+          # shellcheck disable=SC2086
+          terraform -chdir=infra/benchmark destroy -input=false -auto-approve $TF_VARS
+
+  analyse:
+    needs: run
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: drop the committed dataset
+        run: find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+      - uses: actions/download-artifact@v4
+        with:
+          path: data/raw # one directory per region artifact
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: embodied emissions for this run length
+        env:
+          RUN_SECONDS: ${{ inputs.run_seconds }}
+        run: |
+          HOURS=$(python -c "import os; print(round(int(os.environ['RUN_SECONDS']) / 3600, 4))")
+          for dir in data/raw/*/; do
+            region=$(basename "$dir")
+            iso3=$(awk -F, -v r="$region" '$1 == r {print $2}' data/coefficients/regions.csv)
+            if [ -n "$iso3" ]; then ./scripts/boavizta.sh m5.large "$iso3" "$HOURS"; fi
+          done
+      - run: make results PYTHON=python
+      - uses: actions/upload-artifact@v4
+        with:
+          name: results
+          path: |
+            data/processed
+            docs/figures/fig*.png
+            data/raw

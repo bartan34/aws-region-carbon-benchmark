@@ -18,6 +18,10 @@ echo "== Unassociated Elastic IPs =="
 aws ec2 describe-addresses --region "$REGION" \
   --query 'Addresses[?AssociationId==null].[PublicIp,AllocationId]' --output table
 
+echo "== Security groups tagged Project=$TAG (Terraform path) =="
+aws ec2 describe-security-groups --region "$REGION" --filters "Name=tag:Project,Values=$TAG" \
+  --query 'SecurityGroups[].[GroupId,GroupName]' --output table
+
 echo "== Buckets with prefix carbon-bench-$REGION =="
 aws s3api list-buckets --query "Buckets[?starts_with(Name,'carbon-bench-$REGION')].Name" --output text
 
@@ -27,5 +31,8 @@ if [ "$MODE" = "--delete" ]; then
   done
   for v in $(aws ec2 describe-volumes --region "$REGION" --filters Name=status,Values=available --query 'Volumes[].VolumeId' --output text); do
     echo "Deleting volume $v"; aws ec2 delete-volume --region "$REGION" --volume-id "$v"
+  done
+  for g in $(aws ec2 describe-security-groups --region "$REGION" --filters "Name=tag:Project,Values=$TAG" --query 'SecurityGroups[].GroupId' --output text); do
+    echo "Deleting security group $g"; aws ec2 delete-security-group --region "$REGION" --group-id "$g"
   done
 fi
