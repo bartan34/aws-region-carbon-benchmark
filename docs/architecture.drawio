@@ -19,7 +19,7 @@
         <mxCell id="b_s3" value="&lt;b&gt;Amazon S3 (same region)&lt;/b&gt;&lt;br&gt;sysbench output, lscpu, meta.json, timeline" style="rounded=1;arcSize=8;html=1;whiteSpace=wrap;fillColor=#d5e8d4;strokeColor=#333333;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="400" y="392" width="280" height="98" as="geometry"/>
         </mxCell>
-        <mxCell id="b_local" value="&lt;b&gt;Local analysis&lt;/b&gt;&lt;br&gt;sci.py / spreadsheet&lt;br&gt;SCI = ((E × I) + M) / R&lt;br&gt;location-based annual &amp;amp; hourly, market-based&lt;br&gt;sensitivity analysis" style="rounded=1;arcSize=8;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#333333;fontSize=12;" vertex="1" parent="1">
+        <mxCell id="b_local" value="&lt;b&gt;Local analysis&lt;/b&gt;&lt;br&gt;sci.py, figures.py&lt;br&gt;SCI = ((E × I) + M) / R&lt;br&gt;location-based annual &amp;amp; hourly, market-based&lt;br&gt;sensitivity analysis" style="rounded=1;arcSize=8;html=1;whiteSpace=wrap;fillColor=#fff2cc;strokeColor=#333333;fontSize=12;" vertex="1" parent="1">
           <mxGeometry x="840" y="100" width="280" height="150" as="geometry"/>
         </mxCell>
         <mxCell id="b_ext" value="&lt;b&gt;External data sources&lt;/b&gt;&lt;br&gt;Teads power curve (Davy 2021)&lt;br&gt;AWS regional PUE (Amazon)&lt;br&gt;Grid intensity: Electricity Maps /&lt;br&gt;Google Cloud (annual + hourly)&lt;br&gt;Boavizta API (embodied)" style="rounded=1;arcSize=8;html=1;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;fontColor=#333333;fontSize=12;" vertex="1" parent="1">

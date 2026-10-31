@@ -49,6 +49,6 @@ IID=$(aws ec2 run-instances --region "$REGION" \
   --query 'Instances[0].InstanceId' --output text)
 
 EST_MIN=$(( (IDLE_SECONDS + RUNS * (RUN_SECONDS + 60)) / 60 + 5 ))
-echo "$(date -u +%FT%TZ),$REGION,$ITYPE,$IID,$BUCKET,$RUNS,$RUN_SECONDS,$IDLE_SECONDS" >> data/run-log.csv
+echo "$(date -u +%FT%TZ),$REGION,$ITYPE,$IID,$RUNS,$RUN_SECONDS,$IDLE_SECONDS" >> data/run-log.csv
 echo "Launched $IID in $REGION. Expect done_utc in s3://$BUCKET/$REGION/$IID/timeline.txt in ~$EST_MIN min."
 echo "Then: ./scripts/pull-cloudwatch.sh $REGION $IID $BUCKET"

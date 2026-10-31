@@ -72,9 +72,12 @@ DynamoDB table is needed.
 
 ## 3. From GitHub Actions
 
-Set three repository variables (Settings → Secrets and variables → Actions
-→ Variables) from the bootstrap outputs: `AWS_ROLE_ARN`,
-`TF_STATE_BUCKET`, `TF_STATE_REGION`. They are identifiers, not secrets.
+From the bootstrap outputs, set two repository secrets, `AWS_ROLE_ARN` and
+`TF_STATE_BUCKET`, and one repository variable, `TF_STATE_REGION`
+(Settings → Secrets and variables → Actions). The first two are not
+credentials, but they contain the account ID, and secrets are masked in
+workflow logs; the workflow also masks the account ID wherever else it
+appears.
 
 Then Actions → benchmark → Run workflow, with a space-separated list of
 regions. Per region the workflow applies, waits for the instance to upload

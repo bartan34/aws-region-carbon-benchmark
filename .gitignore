@@ -1,8 +1,3 @@
-# Local-only planning and notes (never committed)
-*.local.md
-ROADMAP.local.md
-notes/
-
 # Secrets and environment
 .env
 *.pem
@@ -13,16 +8,15 @@ notes/
 /tmp/
 scripts/ud-*.sh
 
-# Screenshots (go to the coursework appendix, not the repo)
+# Images: only the published figures are tracked
 *.png
 *.jpg
 *.jpeg
 !docs/architecture.png
-!docs/figures/fig2-stacked-op-embodied.png
-!docs/figures/fig3-tornado.png
-!docs/figures/fig4-accounting-views.png
-!docs/figures/fig5-cost-vs-carbon.png
-appendix/
+!docs/figures/operational-vs-embodied.png
+!docs/figures/sensitivity-tornado.png
+!docs/figures/accounting-views.png
+!docs/figures/cost-vs-carbon.png
 
 # Python
 __pycache__/

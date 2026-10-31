@@ -9,7 +9,7 @@ Software Carbon Intensity (SCI) formula from ISO/IEC 21031:2024.
 **Same instance type, same workload, same throughput: 16× difference in
 carbon, 12% difference in cost.**
 
-![Cost vs carbon per unit of work](docs/figures/fig5-cost-vs-carbon.png)
+![Cost vs carbon per unit of work](docs/figures/cost-vs-carbon.png)
 
 ## Findings
 
@@ -43,7 +43,7 @@ sessions on 2026-10-11. All numbers are reproducible from `data/raw/` with
    same CPU model ran at 643 and 669–726 events/s respectively, the faster
    one slowing run by run.
 
-![Three accounting views](docs/figures/fig4-accounting-views.png)
+![Three accounting views](docs/figures/accounting-views.png)
 
 | Region | CPU | events/s ± SD | I annual (g/kWh) | SCI annual | SCI hourly | SCI market-based | Embodied share | USD/h | ¢ per 10⁶ events |
 |---|---|---|---|---|---|---|---|---|---|
@@ -58,9 +58,9 @@ SCI in gCO₂e per 10⁶ sysbench events. Per-run values:
 `data/processed/sci-summary.csv`; sensitivity:
 `data/processed/sensitivity.csv`.
 
-![Operational vs embodied](docs/figures/fig2-stacked-op-embodied.png)
+![Operational vs embodied](docs/figures/operational-vs-embodied.png)
 
-![Sensitivity](docs/figures/fig3-tornado.png)
+![Sensitivity](docs/figures/sensitivity-tornado.png)
 
 ## Method
 

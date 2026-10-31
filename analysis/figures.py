@@ -3,10 +3,10 @@
 
 Run analysis/sci.py first. Outputs (relative to repo root):
   data/processed/sensitivity.csv          one-at-a-time sensitivity, one row per region x factor
-  docs/figures/fig2-stacked-op-embodied.png
-  docs/figures/fig3-tornado.png
-  docs/figures/fig4-accounting-views.png
-  docs/figures/fig5-cost-vs-carbon.png    (only if data/coefficients/pricing.csv exists)
+  docs/figures/operational-vs-embodied.png
+  docs/figures/sensitivity-tornado.png
+  docs/figures/accounting-views.png
+  docs/figures/cost-vs-carbon.png    (only if data/coefficients/pricing.csv exists)
 
 Needs matplotlib (see requirements.txt); sci.py itself stays stdlib-only.
 """
@@ -127,7 +127,7 @@ def fig_stacked(rows: list[dict], regions: list[str]) -> None:
     ax.set_title("Operational vs embodied emissions per run, m5.large", loc="left", fontsize=12)
     ax.legend(loc="upper left")
     fig.tight_layout()
-    fig.savefig(FIG / "fig2-stacked-op-embodied.png", dpi=200)
+    fig.savefig(FIG / "operational-vs-embodied.png", dpi=200)
     plt.close(fig)
 
 
@@ -150,7 +150,7 @@ def fig_tornado(sens: list[dict], regions: list[str]) -> None:
     fig.legend(handles, ["Lowers SCI", "Raises SCI"], loc="lower right", ncol=2)
     fig.suptitle("Sensitivity: which coefficient moves the result (one at a time)", x=0.01, ha="left", fontsize=12)
     fig.tight_layout(rect=(0, 0.06, 1, 1))
-    fig.savefig(FIG / "fig3-tornado.png", dpi=200)
+    fig.savefig(FIG / "sensitivity-tornado.png", dpi=200)
     plt.close(fig)
 
 
@@ -172,7 +172,7 @@ def fig_accounting(rows: list[dict], regions: list[str]) -> None:
     ax.set_title("Same runs, three accounting views", loc="left", fontsize=12)
     ax.legend(loc="upper left")
     fig.tight_layout()
-    fig.savefig(FIG / "fig4-accounting-views.png", dpi=200)
+    fig.savefig(FIG / "accounting-views.png", dpi=200)
     plt.close(fig)
 
 
@@ -195,7 +195,7 @@ def fig_cost(rows: list[dict], regions: list[str]) -> None:
         title = "Cost and carbon per unit of work"
     ax.set_title(title, loc="left", fontsize=12)
     fig.tight_layout()
-    fig.savefig(FIG / "fig5-cost-vs-carbon.png", dpi=200)
+    fig.savefig(FIG / "cost-vs-carbon.png", dpi=200)
     plt.close(fig)
 
 
