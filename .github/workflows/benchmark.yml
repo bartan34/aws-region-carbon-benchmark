@@ -98,10 +98,12 @@ jobs:
           find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
           ./scripts/pull-cloudwatch.sh ${{ matrix.region }} ${{ steps.apply.outputs.iid }} ${{ steps.apply.outputs.bucket }}
 
+      # data/raw holds only this region now, so the artifact keeps the
+      # <region>/<instance-id>/ layout
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.region }}
-          path: data/raw/${{ matrix.region }}
+          path: data/raw
 
       - name: terraform destroy
         if: always() && steps.apply.outcome != 'skipped'
@@ -120,7 +122,8 @@ jobs:
         run: find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
       - uses: actions/download-artifact@v8
         with:
-          path: data/raw # one directory per region artifact
+          path: data/raw
+          merge-multiple: true # each artifact is <region>/<instance-id>/...
       - name: check that at least one region produced data
         run: |
           if ! compgen -G "data/raw/*/" >/dev/null; then
