@@ -5,7 +5,7 @@ year and access date:
 
 - `power.csv`: m5.large power at Idle/10/50/100% load (Teads), plus the
   Cloud Carbon Footprint coefficients used in the sensitivity analysis.
-- `pue.csv`: AWS regional PUE.
+- `pue.csv`: PUE per AWS Region, as published by Amazon.
 - `grid-intensity.csv`: annual location-based grid intensity per region,
   with an alternative source used in the sensitivity analysis.
 - `em-hourly.csv`: Electricity Maps readings taken at run time (one row

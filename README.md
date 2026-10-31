@@ -6,7 +6,7 @@ Run the same CPU-bound benchmark in several AWS regions and estimate the
 lifecycle carbon footprint and the compute cost per unit of work, using the
 Software Carbon Intensity (SCI) formula from ISO/IEC 21031:2024.
 
-**Same instance type, same workload, same throughput: 16× difference in
+**Same instance type, same workload, same throughput: 18× difference in
 carbon, 12% difference in cost.**
 
 ![Cost vs carbon per unit of work](docs/figures/cost-vs-carbon.png)
@@ -17,9 +17,9 @@ Five regions, m5.large, 10 × 600 s sysbench cpu runs per region over two
 sessions on 2026-10-11. All numbers are reproducible from `data/raw/` with
 `make results`.
 
-1. **Region choice moves carbon 16×, cost 12%.** Stockholm (eu-north-1)
-   emits 0.40 gCO₂e per 10⁶ events, Mumbai (ap-south-1) 6.58, with the
-   annual grid average (18× with hourly grid values). Throughput was
+1. **Region choice moves carbon 18×, cost 12%.** Stockholm (eu-north-1)
+   emits 0.40 gCO₂e per 10⁶ events, Mumbai (ap-south-1) 7.38, with the
+   annual grid average (20× with hourly grid values). Throughput was
    about 643 events/s everywhere except one Mumbai instance. On-demand cost
    ranged from 4.14 to 4.62 US cents per 10⁶ events.
 2. **On a clean grid, the hardware dominates.** In Stockholm, embodied
@@ -32,8 +32,8 @@ sessions on 2026-10-11. All numbers are reproducible from `data/raw/` with
    region choice does not matter; the location-based view says it is the
    biggest lever you have.
 4. **When you run matters too.** In Oregon (us-west-2) the grid at run time
-   was 3.6× its annual average (low autumn hydro), so SCI went from 1.16 to
-   3.65. In Ireland it went the other way (3.11 → 2.10).
+   was 3.6× its annual average (low autumn hydro), so SCI went from 1.15 to
+   3.62. In Ireland it went the other way (3.06 → 2.07).
 5. **The power model is the largest uncertainty.** Swapping the Teads
    power curve for the Cloud Carbon Footprint coefficients lowers SCI by
    30–58% in every region. For us-west-2 the grid-zone definition matters
@@ -48,10 +48,10 @@ sessions on 2026-10-11. All numbers are reproducible from `data/raw/` with
 | Region | CPU | events/s ± SD | I annual (g/kWh) | SCI annual | SCI hourly | SCI market-based | Embodied share | USD/h | ¢ per 10⁶ events |
 |---|---|---|---|---|---|---|---|---|---|
 | eu-north-1 | 8259CL | 644.3 ± 0.4 | 21.3 | 0.40 | 0.41 | 0.20 | 48.9% | 0.102 | 4.40 |
-| us-west-2 | 8175M/8259CL | 643.1 ± 1.0 | 98 | 1.16 | 3.65 | 0.20 | 17.0% | 0.096 | 4.15 |
-| eu-west-1 | 8175M/8259CL | 643.0 ± 0.8 | 301.2 | 3.11 | 2.10 | 0.20 | 6.3% | 0.107 | 4.62 |
-| us-east-1 | 8259CL | 643.4 ± 0.9 | 343 | 3.57 | 4.44 | 0.20 | 5.5% | 0.096 | 4.14 |
-| ap-south-1 | 8175M | 666.4 ± 31.2 | 598 | 6.58 | 7.53 | 0.19 | 2.9% | 0.101 | 4.22 |
+| us-west-2 | 8175M/8259CL | 643.1 ± 1.0 | 98 | 1.15 | 3.62 | 0.20 | 17.1% | 0.096 | 4.15 |
+| eu-west-1 | 8175M/8259CL | 643.0 ± 0.8 | 301.2 | 3.06 | 2.07 | 0.20 | 6.4% | 0.107 | 4.62 |
+| us-east-1 | 8259CL | 643.4 ± 0.9 | 343 | 3.60 | 4.47 | 0.20 | 5.5% | 0.096 | 4.14 |
+| ap-south-1 | 8175M | 666.4 ± 31.2 | 598 | 7.38 | 8.45 | 0.19 | 2.6% | 0.101 | 4.22 |
 
 SCI in gCO₂e per 10⁶ sysbench events. Per-run values:
 `data/processed/sci-results.csv`; per-region summary:
@@ -68,7 +68,7 @@ SCI in gCO₂e per 10⁶ sysbench events. Per-run values:
 
 | Term | Meaning | Where it comes from |
 |---|---|---|
-| E | Energy (kWh) | Measured CPU utilisation (CloudWatch, 1-min) × published per-instance power curve (Teads) × AWS regional PUE |
+| E | Energy (kWh) | Measured CPU utilisation (CloudWatch, 1-min) × published per-instance power curve (Teads) × AWS PUE for the region |
 | I | Grid carbon intensity (gCO₂e/kWh), location-based | Electricity Maps / Google Cloud region table / Ember |
 | M | Embodied emissions (gCO₂e) allocated to the run | Boavizta API |
 | R | Functional unit | 10⁶ sysbench events |
@@ -197,7 +197,8 @@ docs/               IAM policy, architecture diagram, figures
 ## Assumptions and limitations
 
 - Power is modelled, not measured; Teads data dates from 2021.
-- PUE is AWS's published regional average, not per data centre.
+- PUE is AWS's published 2023 figure for each region, averaged over its
+  data centres; the 2025 figures are 0.00–0.04 lower.
 - Grid intensity zone mapping is approximate for us-west-2 and ap-south-1.
 - Hourly grid values are point readings at run time, not a full history.
 - Boavizta covers the server share only (no network, storage, building).

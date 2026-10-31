@@ -1,6 +1,6 @@
-region,pue_group,pue,year,source,source_url,accessed,note
-us-east-1,AMER,1.14,2023,Amazon AWS sustainability page,https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-XX,"check page for newer regional values; global 2025 = 1.14"
-us-west-2,AMER,1.14,2023,Amazon AWS sustainability page,https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-XX,
-eu-west-1,EMEA,1.12,2023,Amazon AWS sustainability page,https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-XX,
-eu-north-1,EMEA,1.12,2023,Amazon AWS sustainability page,https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-XX,
-ap-south-1,APAC,1.28,2023,Amazon AWS sustainability page,https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-XX,
+region,page_region,pue,year,source,source_url,accessed,note
+us-east-1,U.S. East (Northern Virginia),1.15,2023,Amazon AWS sustainability page (PUE by AWS Region),https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-31,"2025 = 1.15"
+us-west-2,U.S. West (Oregon),1.13,2023,Amazon AWS sustainability page (PUE by AWS Region),https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-31,"2025 = 1.12"
+eu-west-1,Europe (Ireland),1.10,2023,Amazon AWS sustainability page (PUE by AWS Region),https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-31,"2025 = 1.10"
+eu-north-1,Europe (Stockholm),1.12,2023,Amazon AWS sustainability page (PUE by AWS Region),https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-31,"2025 = 1.09"
+ap-south-1,Asia-Pacific (Mumbai),1.44,2023,Amazon AWS sustainability page (PUE by AWS Region),https://sustainability.aboutamazon.com/products-services/aws-cloud,2026-10-31,"2025 = 1.40"
