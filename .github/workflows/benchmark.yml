@@ -62,15 +62,15 @@ jobs:
         -var run_seconds=${{ inputs.run_seconds }}
         -var idle_seconds=${{ inputs.idle_seconds }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: aws-actions/configure-aws-credentials@v4
+      - uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           role-duration-seconds: 14400
           aws-region: ${{ matrix.region }}
 
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_wrapper: false
 
@@ -98,7 +98,7 @@ jobs:
           find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
           ./scripts/pull-cloudwatch.sh ${{ matrix.region }} ${{ steps.apply.outputs.iid }} ${{ steps.apply.outputs.bucket }}
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.region }}
           path: data/raw/${{ matrix.region }}
@@ -115,10 +115,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: drop the committed dataset
         run: find data/raw -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: data/raw # one directory per region artifact
       - name: check that at least one region produced data
@@ -127,7 +127,7 @@ jobs:
             echo "::error::no region uploaded data; see the run jobs"
             exit 1
           fi
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -142,7 +142,7 @@ jobs:
             if [ -n "$iso3" ]; then ./scripts/boavizta.sh m5.large "$iso3" "$HOURS"; fi
           done
       - run: make results PYTHON=python
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: results
           path: |
