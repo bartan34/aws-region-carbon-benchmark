@@ -116,7 +116,12 @@ data "aws_iam_policy_document" "github_benchmark" {
     sid = "ManageOwnResources"
     actions = [
       "ec2:TerminateInstances",
-      "ec2:ModifyInstanceAttribute", # provider sets shutdown behaviour after launch
+      # the provider applies these after RunInstances, not as launch parameters
+      "ec2:ModifyInstanceAttribute",
+      "ec2:ModifyInstanceMetadataOptions",
+      "ec2:ModifyInstanceMaintenanceOptions",
+      "ec2:MonitorInstances",
+      "ec2:UnmonitorInstances",
       "ec2:DeleteSecurityGroup",
       "ec2:AuthorizeSecurityGroupEgress",
       "ec2:RevokeSecurityGroupEgress",
