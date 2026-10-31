@@ -16,10 +16,14 @@ variable "ec2_role_name" {
   default     = "carbon-bench-ec2-role"
 }
 
-variable "github_repo" {
-  description = "owner/name of the repository whose main-branch workflows may assume the role"
+variable "github_subject_prefix" {
+  description = <<-EOT
+    OIDC subject prefix of the repository whose main-branch workflows may assume
+    the role. Repositories with immutable subjects use repo:<owner>@<owner-id>/<name>@<repo-id>;
+    get it with: gh api repos/<owner>/<name>/actions/oidc/customization/sub -q .sub_claim_prefix
+  EOT
   type        = string
-  default     = "bartan34/aws-region-carbon-benchmark"
+  default     = "repo:bartan34@111636414/aws-region-carbon-benchmark@1423781896"
 }
 
 variable "allowed_regions" {

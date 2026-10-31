@@ -46,6 +46,13 @@ What the GitHub Actions role can do (`infra/bootstrap/iam-github.tf`):
 - pass only the benchmark instance role, to EC2 only;
 - use S3 only on `carbon-bench-*` buckets and the `benchmark/` state prefix.
 
+The trust condition matches the token's `sub` claim. This repository uses
+GitHub's immutable subject format, which embeds the owner and repository
+IDs (`repo:<owner>@<owner-id>/<name>@<repo-id>:ref:refs/heads/main`), so a
+deleted and recreated repository of the same name does not match. For a
+fork, set `github_subject_prefix` from
+`gh api repos/<owner>/<name>/actions/oidc/customization/sub`.
+
 The state bucket is named `tfstate-carbon-bench-<account>`, outside the
 `carbon-bench-*` prefix the instance role may write to.
 
