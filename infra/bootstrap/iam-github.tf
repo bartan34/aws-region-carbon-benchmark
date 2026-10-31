@@ -116,6 +116,7 @@ data "aws_iam_policy_document" "github_benchmark" {
     sid = "ManageOwnResources"
     actions = [
       "ec2:TerminateInstances",
+      "ec2:ModifyInstanceAttribute", # provider sets shutdown behaviour after launch
       "ec2:DeleteSecurityGroup",
       "ec2:AuthorizeSecurityGroupEgress",
       "ec2:RevokeSecurityGroupEgress",
