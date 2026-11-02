@@ -5,6 +5,13 @@
 Run the same CPU-bound benchmark in several AWS regions and estimate the
 lifecycle carbon footprint and the compute cost per unit of work, using the
 Software Carbon Intensity (SCI) formula from ISO/IEC 21031:2024.
+It puts numbers on the AWS Well-Architected best practice
+[SUS01-BP01](https://docs.aws.amazon.com/wellarchitected/latest/sustainability-pillar/sus_sus_region_a2.html):
+choose a Region on both business requirements and sustainability goals.
+
+**Stack:** AWS (EC2, S3, CloudWatch, IAM, Budgets, Price List API) ·
+Terraform · GitHub Actions with OIDC · Bash · Python (matplotlib) ·
+Boavizta API · Electricity Maps
 
 **Same instance type, same workload, same throughput: 18× difference in
 carbon, 12% difference in cost.**
@@ -225,10 +232,3 @@ See `CITATION.cff`, or use GitHub's "Cite this repository" button.
 
 Code: MIT. Data under `data/`: CC BY 4.0 (compatible with the Teads
 dataset licence). See `LICENSE` and `data/LICENSE`.
-
-## Origin
-
-Started as coursework for a cloud architecture module (TU Dublin, 2026),
-answering "How do regions differ in carbon emissions for the same
-workload?". The tool is general; the coursework write-up is not part of
-this repository.
